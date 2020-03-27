@@ -5,6 +5,7 @@
 #![reexport_test_harness_main = "utests_launch"]
 
 mod panic_handler;
+mod slock;
 mod utest;
 mod vga;
 
@@ -29,6 +30,9 @@ pub extern "C" fn _start() -> ! {
     )
     .unwrap();
     write!(vga_buffer, "Coucou Esteban!\n").unwrap();
+
+    let mut spin = slock::SLock::new();
+    let boolean = spin.swap(true);
 
     loop {}
 }
