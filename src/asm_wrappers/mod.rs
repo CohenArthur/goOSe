@@ -27,7 +27,7 @@ pub fn lgdt(gdt: u64) {
         asm!("lgdt ($0)"
              :
              : "r"(gdt)
-             :
+             : "memory"
              :);
     }
 }
