@@ -1,5 +1,5 @@
-use crate::serial::flags::{DLH_OFF, DLL_OFF};
-use crate::serial::ports::COM1;
+use super::flags::{DLH_OFF, DLL_OFF};
+use super::ports::COM1;
 
 use crate::asm_wrappers;
 
