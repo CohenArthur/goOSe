@@ -1,8 +1,8 @@
 use core::fmt;
 
-pub mod serial;
-pub mod ports;
-pub mod flags;
+mod flags;
+mod ports;
+mod serial;
 
 #[macro_export]
 macro_rules! print {

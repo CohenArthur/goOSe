@@ -1,5 +1,5 @@
-use crate::serial::ports;
-use crate::serial::flags;
+use crate::serial::flags::{DLH_OFF, DLL_OFF};
+use crate::serial::ports::COM1;
 
 use crate::asm_wrappers;
 
@@ -13,7 +13,7 @@ impl Serial {
     // FIXME: Needed ?
     pub fn syscall_write(data: &[u8], count: usize) {
         for i in 0..count {
-            asm_wrappers::outb(ports::COM1, data[i]);
+            asm_wrappers::outb(COM1, data[i]);
         }
     }
 
@@ -21,14 +21,14 @@ impl Serial {
         let new_s = Serial { port: port };
 
         /* We initialize the Baude Rate of the port to 38400 bps */
-        asm_wrappers::outb(port + flags::DLL_OFF, 0x3);
-        asm_wrappers::outb(port + flags::DLH_OFF, 0x0);
+        asm_wrappers::outb(port + DLL_OFF, 0x3);
+        asm_wrappers::outb(port + DLH_OFF, 0x0);
 
         new_s
     }
 
     pub fn init_com1() -> Serial {
-        return Serial::init(ports::COM1);
+        return Serial::init(COM1);
     }
 
     fn _write_str(&self, data: &str) {
