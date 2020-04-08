@@ -10,3 +10,9 @@ pub fn panic(info: &PanicInfo) -> ! {
 
     loop {}
 }
+
+#[cfg(target_arch = "riscv64")]
+#[no_mangle]
+pub fn abort() {
+    panic!("Jump !");
+}
