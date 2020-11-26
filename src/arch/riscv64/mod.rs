@@ -9,6 +9,9 @@ use crate::kmain;
 use crate::println;
 use crate::utils::external_symbol_address;
 use cfg_if::cfg_if;
+use core::slice;
+use fdt_rs::base::DevTree;
+use fdt_rs::prelude::FallibleIterator;
 
 /// UART0 address
 pub static UART0: usize = 0x10000000;
@@ -26,22 +29,44 @@ unsafe extern "C" fn kstart() -> ! {
     #[cfg(target_arch = "riscv64")]
     asm!(
         "la sp, STACK_START
-        call {}", sym init
+        mv a0, a1
+        call {}",
+        sym init,
     );
 
-    kmain();
+    unreachable!();
 }
 
 /// Initialize proper rust execution environement.
 #[no_mangle]
-fn init() {
+extern "C" fn init(fdt_addr: usize) -> ! {
     println!("\nRISCV64 Init"); // Separation from OpenSBI boot info
+    println!("Fdt = {:#x}", fdt_addr);
 
     clear_bss();
+
+    let fdt_slice: &[u8] =
+        unsafe { slice::from_raw_parts_mut(fdt_addr as *mut u8, DevTree::MIN_HEADER_SIZE) };
+    let fdt_size = match unsafe { DevTree::read_totalsize(fdt_slice) } {
+        Ok(size) => size,
+        Err(_) => panic!("There is no FDT at {:#x}", fdt_addr),
+    };
+    let fdt_slice: &[u8] = unsafe { slice::from_raw_parts_mut(fdt_addr as *mut u8, fdt_size) };
+
+    let fdt = unsafe { DevTree::new(fdt_slice).unwrap() };
+    println!("\nDevice tree:");
+    let mut nodes = fdt.nodes();
+    nodes.for_each(|node| {
+        println!("Node: {}", node.name().unwrap());
+        Ok(())
+    });
+    println!("");
 
     trap::init();
     interrupts::init();
     println!("Interrupts State: {:?}", interrupts::state());
+
+    kmain();
 }
 
 /// Clear the BSS. Should already be done by some bootloaders but just in case.
